@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: my-app-container
-        image: latishisbumanglagcfdsa/bms:latest  # Replace with your Docker image
+        image: latishisbumanglagcfdsa/my-app:latest  # Replace with your Docker image
         ports:
         - containerPort: 3000  # Replace with the port your app runs on
