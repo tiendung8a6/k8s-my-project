@@ -81,18 +81,18 @@ pipeline {
             steps {
                 sh ''' 
                 echo "Stopping and removing old container..."
-                docker stop bms || true
-                docker rm bms || true
+                docker stop my-app || true
+                docker rm my-app || true
 
                 echo "Running new container on port 3000..."
-                docker run -d --restart=always --name bms -p 3000:3000 latishisbumanglagcfdsa/my-app:latest
+                docker run -d --restart=always --name my-app -p 3000:3000 latishisbumanglagcfdsa/my-app:latest
 
                 echo "Checking running containers..."
                 docker ps -a
 
                 echo "Fetching logs..."
                 sleep 5  # Give time for the app to start
-                docker logs bms
+                docker logs my-app
                 '''
             }
         }
