@@ -9,7 +9,7 @@ pipeline {
     }
 
     environment {
-        SCANNER_HOME = tool 'sonarQube-scanner'
+        SCANNER_HOME = tool 'sonar-scanner'
         DOCKER_IMAGE = 'latishisbumanglagcfdsa/my-app:latest'
         EKS_CLUSTER_NAME = 'my-cluster-eks'
         AWS_REGION = 'ap-southeast-1'
@@ -33,7 +33,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonarQube-servers') {
                     sh ''' 
-                    $SCANNER_HOME/bin/sonarQube-scanner \
+                    $SCANNER_HOME/bin/sonar-scanner \
                         -Dsonar.projectName=my-project \
                         -Dsonar.projectKey=my-project
                     '''
