@@ -1,20 +1,41 @@
-# Use the latest LTS version of Node.js
-FROM node:18-alpine
+# syntax=docker/dockerfile:1.4
 
-# Set the working directory inside the container
-WORKDIR /src
+# Create image based on the official Node image from dockerhub
+FROM node:lts-buster AS development
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Create app directory
+WORKDIR /usr/src/app
 
-# Install dependencies
-RUN npm install
+# Copy dependency definitions
+COPY package.json /usr/src/app
+COPY package-lock.json /usr/src/app
 
-# Copy the rest of your application files
-COPY . .
+# Install dependecies
+#RUN npm set progress=false \
+#    && npm config set depth 0 \
+#    && npm i install
+RUN npm ci
 
-# Expose the port your app runs on
+# Get all the code needed to run the app
+COPY . /usr/src/app
+
+# Expose the port the app runs in
 EXPOSE 3000
 
-# Define the command to run your app
+# Serve the app
 CMD ["npm", "start"]
+
+FROM development as dev-envs
+RUN <<EOF
+apt-get update
+apt-get install -y --no-install-recommends git
+EOF
+
+RUN <<EOF
+useradd -s /bin/bash -m vscode
+groupadd docker
+usermod -aG docker vscode
+EOF
+# install Docker tools (cli, buildx, compose)
+COPY --from=gloursdocker/docker / /
+CMD [ "npm", "start" ]
