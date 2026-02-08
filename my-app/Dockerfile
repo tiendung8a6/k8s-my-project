@@ -1,41 +1,27 @@
-# syntax=docker/dockerfile:1.4
+# Use Node.js 18 (or your Jenkins-configured version)
+FROM node:18
 
-# Create image based on the official Node image from dockerhub
-FROM node:lts-buster AS development
+# Set working directory
+WORKDIR /app
 
-# Create app directory
-WORKDIR /usr/src/app
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
 
-# Copy dependency definitions
-COPY package.json /usr/src/app
-COPY package-lock.json /usr/src/app
+# Force install a compatible PostCSS version to fix the issue
+# RUN npm install postcss@8.4.21 postcss-safe-parser@6.0.0 --legacy-peer-deps
 
-# Install dependecies
-#RUN npm set progress=false \
-#    && npm config set depth 0 \
-#    && npm i install
-RUN npm ci
+# Install dependencies
+RUN npm install
 
-# Get all the code needed to run the app
-COPY . /usr/src/app
+# Copy the entire project
+COPY . .
 
-# Expose the port the app runs in
+# Expose port 3000
 EXPOSE 3000
 
-# Serve the app
+# Set environment variable to prevent OpenSSL errors
+ENV NODE_OPTIONS=--openssl-legacy-provider
+ENV PORT=3000
+
+# Start the application
 CMD ["npm", "start"]
-
-FROM development as dev-envs
-RUN <<EOF
-apt-get update
-apt-get install -y --no-install-recommends git
-EOF
-
-RUN <<EOF
-useradd -s /bin/bash -m vscode
-groupadd docker
-usermod -aG docker vscode
-EOF
-# install Docker tools (cli, buildx, compose)
-COPY --from=gloursdocker/docker / /
-CMD [ "npm", "start" ]
