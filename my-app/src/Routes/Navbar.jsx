@@ -164,8 +164,7 @@ const Navbar = () => {
           </div>
           {!isAuth && (
             <button onClick={handleSignIn} className={styles.signBtn}>
-                <p>Sign In</p>
-              
+              <p>Sign In</p>
             </button>
           )}
           <Login action={action} handleCloseLogin={handleCloseLogin} />
