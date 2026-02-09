@@ -1,34 +1,44 @@
 pipeline {
     agent any
+
     tools {
         jdk 'jdk21'
         nodejs 'nodejs25'
     }
+
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
+        DOCKER_IMAGE = 'latishisbumanglagcfdsa/my-app:latest'
+        EKS_CLUSTER_NAME = 'my-cluster-eks'
+        AWS_REGION = 'ap-southeast-1'
     }
+
     stages {
         stage('Clean Workspace') {
             steps {
                 cleanWs()
             }
         }
+
         stage('Checkout from Git') {
             steps {
                 git branch: 'main', url: 'https://github.com/tiendung8a6/k8s-my-project.git'
                 sh 'ls -la'  // Verify files after checkout
             }
         }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarQube-servers') {
                     sh ''' 
-                    $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=my-project \
-                    -Dsonar.projectKey=my-project 
+                    $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectName=my-app \
+                        -Dsonar.projectKey=my-app
                     '''
                 }
             }
         }
+
         stage('Quality Gate') {
             steps {
                 script {
@@ -36,6 +46,7 @@ pipeline {
                 }
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 sh '''
@@ -51,61 +62,73 @@ pipeline {
                 '''
             }
         }
+
         stage('OWASP FS Scan') {
             steps {
                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'dependency-check'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
+
         stage('Trivy FS Scan') {
             steps {
                 sh 'trivy fs . > trivyfs.txt'
             }
         }
+
         stage('Docker Build & Push') {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
                         sh ''' 
                         echo "Building Docker image..."
-                        docker build --no-cache -t latishisbumanglagcfdsa/my-app:latest -f my-app/Dockerfile my-app
+                        docker build --no-cache -t $DOCKER_IMAGE -f my-app/Dockerfile my-app
 
-                        echo "Pushing Docker image to registry..."
-                        docker push latishisbumanglagcfdsa/my-app:latest
+                        echo "Pushing Docker image to Docker Hub..."
+                        docker push $DOCKER_IMAGE
                         '''
                     }
                 }
             }
         }
-        stage('Deploy to Container') {
+
+        stage('Deploy to EKS Cluster') {
             steps {
-                sh ''' 
-                echo "Stopping and removing old container..."
-                docker stop my-app || true
-                docker rm my-app || true
+                script {
+                    sh '''
+                    echo "Verifying AWS credentials..."
+                    aws sts get-caller-identity
 
-                echo "Running new container on port 3000..."
-                docker run -d --restart=always --name my-app -p 3000:3000 latishisbumanglagcfdsa/my-app:latest
+                    echo "Configuring kubectl for EKS cluster..."
+                    aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
 
-                echo "Checking running containers..."
-                docker ps -a
+                    echo "Verifying kubeconfig..."
+                    kubectl config view
 
-                echo "Fetching logs..."
-                sleep 5  # Give time for the app to start
-                docker logs my-app
-                '''
+                    echo "Deploying application to EKS..."
+                    kubectl apply -f deployment.yml
+                    kubectl apply -f service.yml
+
+                    echo "Verifying deployment..."
+                    kubectl get pods
+                    kubectl get svc
+                    '''
+                }
             }
         }
     }
+
     post {
         always {
-            emailext attachLog: true,
+            mail(
+                attachLog: true,
                 subject: "'${currentBuild.result}'",
                 body: "Project: ${env.JOB_NAME}<br/>" +
                       "Build Number: ${env.BUILD_NUMBER}<br/>" +
                       "URL: ${env.BUILD_URL}<br/>",
-                to: 'tiendung8a6@gmail.com@gmail.com',
-                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+                to: 'tiendung8a6@gmail.com',
+                attachmentsPattern: 'trivyfs.txt'
+            )
         }
     }
 }
