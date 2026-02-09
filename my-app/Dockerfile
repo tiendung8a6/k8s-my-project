@@ -1,5 +1,4 @@
-# Use Node.js 18 (or your Jenkins-configured version)
-FROM node:18
+FROM node:22
 
 # Set working directory
 WORKDIR /app
@@ -11,7 +10,7 @@ COPY package.json package-lock.json ./
 # RUN npm install postcss@8.4.21 postcss-safe-parser@6.0.0 --legacy-peer-deps
 
 # Install dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install --force --legacy-peer-deps
 
 # Copy the entire project
 COPY . .
