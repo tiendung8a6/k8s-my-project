@@ -174,7 +174,6 @@
         "ext-rename-js-to-ts": "ts-node ./src/node-scripts/file-ext-rename-js-to-ts.ts",
         "analyze": "react-app-rewired build && source-map-explorer 'build/static/js/*.js' --html analyze-result.html",
         "lint": "eslint --fix src",
-        "postinstall": "ts-node ./src/node-scripts/audit-message.ts",
         "audit": "npm audit --production"
     },
     "engines": {
