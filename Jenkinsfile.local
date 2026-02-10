@@ -100,14 +100,13 @@ pipeline {
     post {
         always {
             mail(
-                attachLog: true,
                 subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
                 body: """
                     Project: ${env.JOB_NAME}<br/>
                     Build Number: ${env.BUILD_NUMBER}<br/>
                     Result: ${currentBuild.currentResult}<br/>
-                    URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a>
-                """,
+                    URL: ${env.BUILD_URL}<br/>
+                    """,
                 to: 'tiendung8a6@gmail.com',
             )
         }
