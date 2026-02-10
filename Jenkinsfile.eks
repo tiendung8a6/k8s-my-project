@@ -23,7 +23,7 @@ pipeline {
         stage('Checkout from Git') {
             steps {
                 git branch: 'main', url: 'https://github.com/tiendung8a6/k8s-my-project.git'
-                sh 'ls -la'  // Verify files after checkout
+                sh 'ls -la'  
             }
         }
 
