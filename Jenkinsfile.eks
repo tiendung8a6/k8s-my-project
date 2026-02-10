@@ -123,9 +123,9 @@ pipeline {
             mail(
                 subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
                 body: """
-                    Project: ${env.JOB_NAME}<br/>
-                    Build Number: ${env.BUILD_NUMBER}<br/>
-                    Result: ${currentBuild.currentResult}<br/>
+                    Project: ${env.JOB_NAME}
+                    Build Number: ${env.BUILD_NUMBER}
+                    Result: ${currentBuild.currentResult}
                     URL: ${env.BUILD_URL}<br/>
                     """,
                 to: 'tiendung8a6@gmail.com',
