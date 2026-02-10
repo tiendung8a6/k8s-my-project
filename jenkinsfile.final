@@ -127,6 +127,9 @@ pipeline {
 
                     echo "Deploying application to EKS..."
                     kubectl apply -f deployment.yml
+                    kubectl rollout restart deployment my-app
+                    kubectl rollout status deployment my-app
+                  
                     kubectl apply -f service.yml
 
                     echo "Verifying deployment..."
