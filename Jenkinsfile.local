@@ -109,7 +109,6 @@ pipeline {
                     URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a>
                 """,
                 to: 'tiendung8a6@gmail.com',
-                attachmentsPattern: 'trivyfs.txt'
             )
         }
     }
